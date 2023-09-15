@@ -35,10 +35,10 @@ defmodule Solution.P014 do
   end
 
   def make_chunks(seq) do
-    [1 | seq]
+    [0 | seq]
     |> Enum.chunk_every(2, 1)
     |> Enum.filter(fn x -> length(x) == 2 end)
-    |> Enum.map(fn [x, y] -> Enum.to_list(x..y) end)
+    |> Enum.map(fn [x, y] -> Enum.to_list((x + 1)..y) end)
   end
 
   def run_many([h | t], candidates, cache) do
@@ -47,7 +47,7 @@ defmodule Solution.P014 do
   end
 
   def run_many([], candidates, _) do
-    Enum.at(candidates, -1)
+    candidates |> Enum.reverse() |> Enum.map(fn x -> Enum.at(x, 0) end)
   end
 
   def run_one([], candidate, cache) do
@@ -72,16 +72,15 @@ defmodule Solution.P014 do
   end
 
   def find_best(old, new) when length(new) > length(old) do
-    Enum.reverse(new)
+    new
   end
 
   def find_best(old, new) when length(old) == length(new) do
-    ret = Enum.reverse(new)
 
-    if List.first(old) >= List.first(ret) do
+    if List.first(old) >= List.first(new) do
       old
     else
-      ret
+      new
     end
   end
 
@@ -93,32 +92,28 @@ defmodule Solution.P014 do
     3 * n + 1
   end
 
-  def collatz_seq(n, cache) when is_integer(n) do
-    collatz_seq([n], cache)
-  end
-
   def collatz_seq([k | n], cache) do
     r = [k | n]
-    seq = Map.get(cache, k)
-    if seq do
-      result = seq ++ r
+    if Map.has_key?(cache, k) do
+      seq = Map.get(cache, k)
+      result = Enum.reverse(r) ++ seq
       {result, update_cache(cache, result, k)}
     else
       collatz_seq([collatz(k) | r], cache)
     end
   end
 
+  def collatz_seq(n, cache) do
+    collatz_seq([n], cache)
+  end
+
   # [9, 28, 14, 7, 22, 11, 34, 17, 52, 26, 13, 40, 20, 10, 5, 16, 8, 4, 2, 1],
 
-  def update_cache(cache, [], _) do
+  def update_cache(cache, [k | _], k) do
     cache
   end
 
   def update_cache(cache, [h | t], k) do
-    if Map.has_key?(cache, h) do
-      cache
-    else
-      update_cache(Map.put(cache, h, acc), t, [h | acc])
-    end
+      update_cache(Map.put(cache, h, t), t, k)
   end
 end
