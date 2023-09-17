@@ -7,7 +7,7 @@ defmodule Solution.P014 do
   def run do
     incoming = Utils.parse()
     ranks = run(incoming)
-    Enum.each(incoming, fn x -> IO.puts(Map.get(ranks, x)) end)
+    Enum.each(incoming, fn x -> IO.puts(Map.get(ranks, x) |> elem(0)) end)
   end
 
   def run(seq) do
@@ -33,13 +33,13 @@ defmodule Solution.P014 do
   end
 
   def update_ranks(ranks, k, v) do
-    Map.put(ranks, k, elem(v, 0))
+    Map.put(ranks, k, v)
   end
 
   def collatz_seq([k | n], cache) do
     r = [k | n]
-    start_len = Map.get(cache, k)
-    if start_len do
+    if Map.has_key?(cache, k) do
+      start_len = Map.get(cache, k)
       update_cache(cache, r, start_len)
     else
       collatz_seq([collatz(k) | r], cache)
@@ -52,8 +52,12 @@ defmodule Solution.P014 do
 
   # [9, 28, 14, 7, 22, 11, 34, 17, 52, 26, 13, 40, 20, 10, 5, 16, 8, 4, 2, 1],
 
-  def update_cache(cache, seq, start) do
-    seq |> Enum.with_index(start) |> Enum.reduce(cache, fn {x, idx}, acc -> Map.put(acc, x, idx) end)
+  def update_cache(cache, [], _) do
+    cache
+  end
+
+  def update_cache(cache, [h | t], idx) do
+    update_cache(Map.put(cache, h, idx), t, idx + 1)
   end
 
   def collatz_seq_straight(n) when is_integer(n) do
