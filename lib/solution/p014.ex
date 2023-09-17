@@ -1,107 +1,53 @@
 defmodule Solution.P014 do
+  require IEx
   # require Utils
   require Integer
   require MapSet
 
   def run do
-    Utils.parse() |> run() |> Enum.each(&IO.puts/1)
+    incoming = Utils.parse()
+    ranks = run(incoming)
+    Enum.each(incoming, fn x -> IO.puts(Map.get(ranks, x)) end)
   end
 
-  def run(start_len) do
-    indexed = indexed_sort(start_len)
-    indexed |> keys() |> run_many() |> restore_unsorted(indexed)
+  def run(seq) do
+    run_to(Enum.max(seq))
   end
 
-  def indexed_sort(x) do
-    Enum.with_index(x) |> Enum.sort(fn x, y -> elem(x, 0) <= elem(y, 0) end)
+  def run_to(n) do
+    run_to(1, n, {nil, 0}, %{1 => 0}, Map.new())
   end
 
-  def values(x) do
-    for {_, y} <- x, do: y
+  def run_to(_, 0, _, _cache, ranks) do
+    ranks
   end
 
-  def keys(x) do
-    for {y, _} <- x, do: y
-  end
-
-  def restore_unsorted(start_len, indexed) when length(start_len) == length(indexed) do
-    for({x, {_, i}} <- Enum.zip(start_len, indexed), do: {i, x})
-    |> Enum.sort(fn {i0, _}, {i1, _} -> i0 <= i1 end)
-    |> values()
-  end
-
-  def run_many(start_len) do
-    make_chunks(start_len) |> run_many([{nil, 0}], %{1 => 0})
-  end
-
-  def make_chunks(start_len) do
-    [1 | start_len]
-    |> Enum.chunk_every(2, 1)
-    |> Enum.filter(fn x -> length(x) == 2 end)
-    |> Enum.map(fn [x, y] -> Enum.to_list((x + 1)..y) end)
-  end
-
-  def run_many([h | t], candidates, cache) do
-    {new_candidate, new_cache} = run_one(h, List.first(candidates), cache)
-    run_many(t, [new_candidate | candidates], new_cache)
-  end
-
-  def run_many([], candidates, _) do
-    candidates |> Enum.drop(-1) |> Enum.reverse()  |> Enum.map(fn x -> elem(x, 0) end)
-  end
-
-  def run_one([], candidate, cache) do
-    {candidate, cache}
-  end
-
-  def run_one([n | rest], candidate, cache) do
-
-    if Map.has_key?(cache, n) do
-      run_one(rest, candidate, cache)
+  def run_to(start, end_, best, cache, ranks) do
+    if Map.has_key?(cache, start) do
+      run_to(start + 1, end_ - 1, best, cache, update_ranks(ranks, start, best))
     else
-      {new_candidate, new_cache} = collatz_seq(n, candidate, cache)
-      run_one(rest, new_candidate, new_cache)
+      new_cache = collatz_seq(start, cache)
+      new_best = find_best(best, {start, Map.get(new_cache, start)})
+      run_to(start + 1, end_ - 1, new_best, new_cache, update_ranks(ranks, start, new_best))
     end
   end
 
-  def find_best({_, l0}, {start1, l1}) when l0 < l1 do
-    {start1, l1}
+  def update_ranks(ranks, k, v) do
+    Map.put(ranks, k, elem(v, 0))
   end
 
-  def find_best({start0, l0}, {_, l1}) when l0 > l1 do
-    {start0, l0}
-  end
-
-  def find_best({start0, l0}, {start1, l1}) when l0 == l1 do
-
-    if start0 >= start1 do
-      {start0, l0}
-    else
-      {start1, l1}
-    end
-  end
-
-  def collatz(n) when Integer.is_even(n) do
-    Integer.floor_div(n, 2)
-  end
-
-  def collatz(n) do
-    3 * n + 1
-  end
-
-  def collatz_seq([k | n], candidate, cache) do
+  def collatz_seq([k | n], cache) do
     r = [k | n]
-    if Map.has_key?(cache, k) do
-      start_len = Map.get(cache, k)
-      result_len = length(r) + start_len
-      {find_best(candidate, {Enum.at(r, -1), result_len}), update_cache(cache, r, start_len)}
+    start_len = Map.get(cache, k)
+    if start_len do
+      update_cache(cache, r, start_len)
     else
-      collatz_seq([collatz(k) | r], candidate, cache)
+      collatz_seq([collatz(k) | r], cache)
     end
   end
 
-  def collatz_seq(n, candidate, cache) do
-    collatz_seq([n], candidate, cache)
+  def collatz_seq(n, cache) do
+    collatz_seq([n], cache)
   end
 
   # [9, 28, 14, 7, 22, 11, 34, 17, 52, 26, 13, 40, 20, 10, 5, 16, 8, 4, 2, 1],
@@ -118,6 +64,31 @@ defmodule Solution.P014 do
     case seq do
       [1 | _] -> Enum.reverse(seq)
       [k | _] -> collatz_seq_straight([collatz(k) | seq])
+    end
+  end
+
+  def collatz(n) when Integer.is_even(n) do
+    Integer.floor_div(n, 2)
+  end
+
+  def collatz(n) do
+    3 * n + 1
+  end
+
+
+  def find_best({_, l0}, {start1, l1}) when l0 < l1 do
+    {start1, l1}
+  end
+
+  def find_best({start0, l0}, {_, l1}) when l0 > l1 do
+    {start0, l0}
+  end
+
+  def find_best({start0, l0}, {start1, l1}) when l0 == l1 do
+    if start0 >= start1 do
+      {start0, l0}
+    else
+      {start1, l1}
     end
   end
 
