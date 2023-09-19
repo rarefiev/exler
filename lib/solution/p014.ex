@@ -23,17 +23,17 @@ defmodule Solution.P014 do
     run_to(1, n, {nil, 0}, %{1 => 0}, [])
   end
 
-  def run_to(_, 0, _, _cache, ranks) do
+  def run_to(start, end_, _, _cache, ranks) when start >= end_ do
     ranks
   end
 
   def run_to(start, end_, best, cache, ranks) do
     if Map.has_key?(cache, start) do
-      run_to(start + 1, end_ - 1, best, cache, ranks)
+      run_to(start + 2, end_, best, cache, ranks)
     else
       new_cache = collatz_seq(start, cache)
       new_best = find_best(best, {start, Map.get(new_cache, start)})
-      run_to(start + 1, end_ - 1, if elem(new_best, 0) do new_best else best end, new_cache, update_ranks(ranks, start, new_best))
+      run_to(start + 2, end_, if elem(new_best, 0) do new_best else best end, new_cache, update_ranks(ranks, start, new_best))
     end
   end
 
