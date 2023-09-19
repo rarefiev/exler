@@ -6,16 +6,21 @@ defmodule Solution.P014 do
 
   def run do
     incoming = Utils.parse()
-    ranks = run(incoming)
-    Enum.each(incoming, fn x -> IO.puts(Map.get(ranks, x) |> elem(0)) end)
+    maxes = run(incoming)
+    Enum.each(maxes, fn x -> IO.puts(x) end)
+  end
+
+  def get_rank(ranks, e) do
+    Stream.drop_while(ranks, fn x -> x > e end) |> Enum.at(0)
   end
 
   def run(seq) do
-    run_to(Enum.max(seq))
+    ranks = run_to(Enum.max(seq))
+    Enum.map(seq, fn x -> get_rank(ranks, x) end)
   end
 
   def run_to(n) do
-    run_to(1, n, {nil, 0}, %{1 => 0}, Map.new())
+    run_to(1, n, {nil, 0}, %{1 => 0}, [])
   end
 
   def run_to(_, 0, _, _cache, ranks) do
@@ -24,16 +29,20 @@ defmodule Solution.P014 do
 
   def run_to(start, end_, best, cache, ranks) do
     if Map.has_key?(cache, start) do
-      run_to(start + 1, end_ - 1, best, cache, update_ranks(ranks, start, best))
+      run_to(start + 1, end_ - 1, best, cache, ranks)
     else
       new_cache = collatz_seq(start, cache)
       new_best = find_best(best, {start, Map.get(new_cache, start)})
-      run_to(start + 1, end_ - 1, new_best, new_cache, update_ranks(ranks, start, new_best))
+      run_to(start + 1, end_ - 1, if elem(new_best, 0) do new_best else best end, new_cache, update_ranks(ranks, start, new_best))
     end
   end
 
-  def update_ranks(ranks, k, v) do
-    Map.put(ranks, k, v)
+  def update_ranks(ranks, _, {nil, _}) do
+    ranks
+  end
+
+  def update_ranks(ranks, _, {v, _}) do
+      [v | ranks]
   end
 
   def collatz_seq([k | n], cache) do
@@ -84,13 +93,13 @@ defmodule Solution.P014 do
     {start1, l1}
   end
 
-  def find_best({start0, l0}, {_, l1}) when l0 > l1 do
-    {start0, l0}
+  def find_best({_, l0}, {_, l1}) when l0 > l1 do
+    {nil, nil}
   end
 
   def find_best({start0, l0}, {start1, l1}) when l0 == l1 do
     if start0 >= start1 do
-      {start0, l0}
+      {nil, nil}
     else
       {start1, l1}
     end
