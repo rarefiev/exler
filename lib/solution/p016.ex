@@ -17,7 +17,7 @@ defmodule Solution.P016 do
   end
 
   def run_one(x) do
-    Bitwise.bsl(2, x - 1) |> Integer.to_string() |> String.split("") |> Stream.drop(1) |> Stream.drop(-1) |> Stream.map(fn x -> Integer.parse(x) |> elem(0) end) |> Enum.sum()
+    Bitwise.bsl(2, x - 1) |> Integer.to_string() |> String.split("", trim: true) |> Stream.map(fn x -> Integer.parse(x) |> elem(0) end) |> Enum.sum()
   end
 
 end
