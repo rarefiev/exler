@@ -1,6 +1,6 @@
 defmodule Solution.P017 do
   @ones %{
-    "0" => "Zero",
+    "0" => "",
     "1" => "One",
     "2" => "Two",
     "3" => "Three",
@@ -15,9 +15,9 @@ defmodule Solution.P017 do
     "12" => "Twelve"
   }
 
-  @lower_tens %{"3" => "Thir", "5" => "Fif"}
+  @lower_tens %{"3" => "Thir", "5" => "Fif", "8" => "Eigh"}
 
-  @upper_tens %{"2" => "Twen", "4" => "For", "8" => "Eigh"}
+  @upper_tens %{"2" => "Twen", "4" => "For"}
 
   @teen "teen"
   @ty "ty"
@@ -25,7 +25,7 @@ defmodule Solution.P017 do
   @degrees ["", "Thousand", "Million", "Billion", "Trillion"]
 
   def run do
-    incoming = Utils.parse()
+    incoming = Utils.parse_string()
     result = run(incoming)
     Enum.each(result, fn x -> IO.puts(x) end)
   end
@@ -35,15 +35,20 @@ defmodule Solution.P017 do
   end
 
   def run_one(x) do
-    align(x)
+    ret = align(x)
     |> String.split("", trim: true)
     |> Enum.chunk_every(3)
     |> Enum.reverse()
     |> Enum.zip(@degrees)
     |> Enum.map(fn {x, y} -> triplet_to_words(x) ++ [y] end)
-    |> Enum.reduce(fn x, acc -> x ++ acc end)
+    |> Enum.reject(fn x -> Enum.at(x, 0) == "" end)
+    |> Enum.reduce([], fn x, acc -> x ++ acc end)
     |> Enum.join(" ")
-    |> String.trim()
+    if ret == "" do
+      "Zero"
+    else
+      String.split(ret, " ", trim: true) |> Enum.join(" ")
+    end
   end
 
   def triplet_to_words(["0", "0", "0"]) do
