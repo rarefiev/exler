@@ -85,7 +85,7 @@ defmodule Solution.P014 do
   end
 
   def collatz(n) do
-    3 * n + 1
+    Integer.floor_div(3 * n + 1, 2)
   end
 
 
