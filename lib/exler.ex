@@ -1,6 +1,7 @@
 defmodule Exler do
   @moduledoc """
-  Documentation for `Exler`.
+  Contains solutions for Project Euler.
+  (https://www.hackerrank.com/contests/projecteuler/)
   """
 
   @doc """

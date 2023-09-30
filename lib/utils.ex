@@ -12,6 +12,13 @@ defmodule Utils do
     parse(&as_intger_seq/1)
   end
 
+  def parse_integer_seq_of_seq() do
+    n = parse_integer_line()
+    for _ <- 1..n do
+      parse_integer_seq()
+    end
+  end
+
   def parse(f) do
     n = parse_integer_line()
     for _ <- 1..n, do: parse_line(f)
