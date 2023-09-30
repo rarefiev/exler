@@ -1,4 +1,5 @@
 defmodule Solution.P015 do
+  @cache :cache
 
   def run do
     incoming = Utils.parse_integer_seq()
@@ -7,7 +8,18 @@ defmodule Solution.P015 do
   end
 
   def run(seq) do
-    seq |> Enum.map(fn x -> apply(&f/2, x) end)
+    init()
+    r = seq |> Enum.map(fn x -> apply(&f/2, x) end)
+    cleanup()
+    r
+  end
+
+  def init() do
+    :ets.new(@cache, [:named_table])
+  end
+
+  def cleanup() do
+    :ets.delete(@cache)
   end
 
   def run_one(x) do
@@ -22,12 +34,31 @@ defmodule Solution.P015 do
     m + 1
   end
 
-  def f(m, 0) do
+  def f(_, 0) do
     1
   end
 
   def f(m, n) do
-    0..(n - 1) |> Stream.map(fn i -> max(f(1, i),  f(m - 1, n - i)) |> mod1097() end) |> Enum.sum() |> plus_one() |> mod1097()
+    r = lookup_cache(m, n)
+    unless r do
+      insert_cache(m, n,
+       0..(n - 1) |> Stream.map(fn i -> max(f(1, i),  f(m - 1, n - i)) end) |> Enum.sum() |> plus_one() |> mod1097())
+    else
+      r
+    end
+  end
+
+  def lookup_cache(m, n) do
+    try do
+      :ets.lookup_element(@cache, {m, n}, 2)
+    rescue
+      ArgumentError -> nil
+    end
+  end
+
+  def insert_cache(m, n, r) do
+    :ets.insert(@cache, {{m, n}, r})
+    r
   end
 
   def plus_one(x) do
