@@ -1,7 +1,7 @@
 defmodule Utils do
 
   def parse_integer() do
-    parse(&Integer.parse/1)
+    parse(&as_integer/1)
   end
 
   def parse_string() do
