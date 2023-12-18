@@ -5,12 +5,21 @@ defmodule Utils do
   end
 
   def parse_string() do
-    parse(fn x -> x end)
+    parse(fn x -> String.trim(x) end)
   end
 
   def parse_integer_seq() do
     parse(&as_intger_seq/1)
   end
+
+  def parse_string_seq() do
+    parse(&String.trim/1)
+  end
+
+  def parse_two_string_seq() do
+    {parse_string_seq(), parse_string_seq()}
+  end
+
 
   def parse_integer_seq_of_seq() do
     n = parse_integer_line()
