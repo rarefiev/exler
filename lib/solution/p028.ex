@@ -1,26 +1,48 @@
 defmodule Solution.P028 do
   import Utils
 
+  @modulo 1_000_000_000 + 7
+
   def run do
     incoming = Utils.parse_integer()
     run(incoming) |> Enum.each(&IO.puts/1)
   end
 
   def run(xs) do
-    Enum.map(xs, &run_one/1)
+    m = tr(Enum.sort(xs), sum_stream())
+    Enum.map(xs, fn x -> Map.get(m, x) end)
   end
 
-  def run_one(x) do
-    Stream.iterate(1, &(&1 + 2)) |> Stream.take_while(&(&1 <= x)) |> Stream.flat_map(&f/1) |> Enum.sum()
+  def f_stream() do
+    Stream.iterate({1, [1]}, &f_step/1)
   end
 
-  def f(1) do
-    [1]
+  def f_step({n, xs}) do
+    y = Enum.at(xs, -1)
+    xs_1 = Enum.map(1..4, &(&1 * (n + 1) + y))
+    {n + 2, xs_1}
   end
 
-  def f(n) when rem(n, 2) == 1 do
-    y = Enum.at(f(n - 2), -1)
-    Stream.iterate(y, fn x -> x + n - 1 end) |> Stream.drop(1) |>  Enum.take(4)
+  def sum_stream() do
+    f_stream() |> Stream.map(fn {i, xs} -> {i, Enum.sum(xs)} end)
+  end
+
+  def tr(xs, stream) do
+    Stream.transform(stream, {0, xs}, &tr_fn/2) |> Map.new()
+  end
+
+  def tr_fn(_, {agg, []}) do
+    {:halt, {nil, nil}}
+  end
+
+
+  def tr_fn({k, v}, {agg, [x | xs] = xs1}) do
+    agg1 = rem(agg + v, @modulo)
+    if k == x do
+      {[{k, agg1}], {agg1, xs}}
+    else
+      {[], {agg1, xs1}}
+    end
   end
 
 end
