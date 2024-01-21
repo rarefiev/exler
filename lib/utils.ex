@@ -33,7 +33,7 @@ defmodule Utils do
     for _ <- 1..n, do: parse_line(f)
   end
 
-  defp parse_integer_line() do
+  def parse_integer_line() do
     parse_line(&as_integer/1)
   end
 
